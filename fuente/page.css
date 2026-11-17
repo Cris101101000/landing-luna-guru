@@ -211,3 +211,24 @@ header.top img { height: 36px; width: auto; display: block; }
   .pregunta .beneficio { margin-top: 32px; }
 }
 @media (max-width: 640px) { .pills-rubro { grid-template-columns: 1fr; max-width: 420px; } }
+
+/* Planes: tres tarjetas; la del medio resaltada. En el celular, una debajo de otra. */
+.planes-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: stretch; max-width: 1080px; margin: 0 auto; }
+.plan { position: relative; background: #fff; color: var(--ink); border: 1.5px solid var(--borde); border-radius: 28px; padding: 32px 28px 30px; display: flex; flex-direction: column; }
+.plan h3 { margin: 0; font-size: 26px; font-weight: 700; }
+.plan .para { margin: 6px 0 0; color: var(--ink2); font-size: 16px; }
+.plan .precio { margin: 22px 0 22px; font-size: 52px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
+.plan .precio small { font-size: 18px; font-weight: 600; letter-spacing: 0; vertical-align: 0.9em; }
+.plan .precio span { font-size: 17px; font-weight: 500; letter-spacing: 0; color: var(--ink2); }
+.plan .btn { justify-content: center; width: 100%; max-width: none; }
+.plan ul { list-style: none; padding: 0; margin: 26px 0 0; display: grid; gap: 12px; font-size: 16px; }
+.plan li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; }
+.plan li::before { content: "\2713"; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--lav); color: var(--deep); font-size: 13px; font-weight: 700; margin-top: 1px; }
+.plan.top { background: var(--ink); color: #fff; border-color: var(--ink); box-shadow: 0 30px 60px -30px rgba(36, 5, 55, 0.6); }
+.plan.top .para, .plan.top .precio span { color: rgba(255, 255, 255, 0.75); }
+.plan.top li::before { background: var(--lima); color: var(--ink); }
+.plan .sello { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); white-space: nowrap; background: var(--lima); color: var(--ink); font-size: 13px; font-weight: 700; border-radius: 999px; padding: 6px 14px; }
+.planes-nota { text-align: center; color: var(--ink2); font-size: 15px; margin: 28px auto 0; max-width: 620px; }
+@media (max-width: 900px) {
+  .planes-grid { grid-template-columns: 1fr; max-width: 460px; gap: 28px; }
+}

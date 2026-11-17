@@ -3824,6 +3824,27 @@ header.top img { height: 36px; width: auto; display: block; }
 }
 @media (max-width: 640px) { .pills-rubro { grid-template-columns: 1fr; max-width: 420px; } }
 
+/* Planes: tres tarjetas; la del medio resaltada. En el celular, una debajo de otra. */
+.planes-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: stretch; max-width: 1080px; margin: 0 auto; }
+.plan { position: relative; background: #fff; color: var(--ink); border: 1.5px solid var(--borde); border-radius: 28px; padding: 32px 28px 30px; display: flex; flex-direction: column; }
+.plan h3 { margin: 0; font-size: 26px; font-weight: 700; }
+.plan .para { margin: 6px 0 0; color: var(--ink2); font-size: 16px; }
+.plan .precio { margin: 22px 0 22px; font-size: 52px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
+.plan .precio small { font-size: 18px; font-weight: 600; letter-spacing: 0; vertical-align: 0.9em; }
+.plan .precio span { font-size: 17px; font-weight: 500; letter-spacing: 0; color: var(--ink2); }
+.plan .btn { justify-content: center; width: 100%; max-width: none; }
+.plan ul { list-style: none; padding: 0; margin: 26px 0 0; display: grid; gap: 12px; font-size: 16px; }
+.plan li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; }
+.plan li::before { content: "\2713"; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--lav); color: var(--deep); font-size: 13px; font-weight: 700; margin-top: 1px; }
+.plan.top { background: var(--ink); color: #fff; border-color: var(--ink); box-shadow: 0 30px 60px -30px rgba(36, 5, 55, 0.6); }
+.plan.top .para, .plan.top .precio span { color: rgba(255, 255, 255, 0.75); }
+.plan.top li::before { background: var(--lima); color: var(--ink); }
+.plan .sello { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); white-space: nowrap; background: var(--lima); color: var(--ink); font-size: 13px; font-weight: 700; border-radius: 999px; padding: 6px 14px; }
+.planes-nota { text-align: center; color: var(--ink2); font-size: 15px; margin: 28px auto 0; max-width: 620px; }
+@media (max-width: 900px) {
+  .planes-grid { grid-template-columns: 1fr; max-width: 460px; gap: 28px; }
+}
+
 </style>
 </head>
 <body>
@@ -3891,6 +3912,14 @@ header.top img { height: 36px; width: auto; display: block; }
 </div>
   <div class="rubros"><div class="pista"><figure class="foto"><img src="fotos/01.webp" alt="Peluquería" loading="lazy" width="240" height="320"><figcaption>Peluquería</figcaption></figure><figure class="foto"><img src="fotos/17.webp" alt="Crossfit" loading="lazy" width="240" height="320"><figcaption>Crossfit</figcaption></figure><figure class="foto"><img src="fotos/10.webp" alt="Odontología" loading="lazy" width="240" height="320"><figcaption>Odontología</figcaption></figure><figure class="foto"><img src="fotos/05.webp" alt="Barbería" loading="lazy" width="240" height="320"><figcaption>Barbería</figcaption></figure><figure class="foto"><img src="fotos/20.webp" alt="Construcción" loading="lazy" width="240" height="320"><figcaption>Construcción</figcaption></figure><figure class="foto"><img src="fotos/06.webp" alt="Yoga" loading="lazy" width="240" height="320"><figcaption>Yoga</figcaption></figure><figure class="foto"><img src="fotos/02.webp" alt="Kinesiología" loading="lazy" width="240" height="320"><figcaption>Kinesiología</figcaption></figure><figure class="foto"><img src="fotos/09.webp" alt="Uñas y manicura" loading="lazy" width="240" height="320"><figcaption>Uñas y manicura</figcaption></figure><figure class="foto"><img src="fotos/18.webp" alt="Pilates" loading="lazy" width="240" height="320"><figcaption>Pilates</figcaption></figure><figure class="foto"><img src="fotos/14.webp" alt="Psicología" loading="lazy" width="240" height="320"><figcaption>Psicología</figcaption></figure><figure class="foto"><img src="fotos/13.webp" alt="Estética facial" loading="lazy" width="240" height="320"><figcaption>Estética facial</figcaption></figure><figure class="foto"><img src="fotos/19.webp" alt="Entrenador personal" loading="lazy" width="240" height="320"><figcaption>Entrenador personal</figcaption></figure><figure class="foto"><img src="fotos/01.webp" alt="Peluquería" loading="lazy" width="240" height="320"><figcaption>Peluquería</figcaption></figure><figure class="foto"><img src="fotos/17.webp" alt="Crossfit" loading="lazy" width="240" height="320"><figcaption>Crossfit</figcaption></figure><figure class="foto"><img src="fotos/10.webp" alt="Odontología" loading="lazy" width="240" height="320"><figcaption>Odontología</figcaption></figure><figure class="foto"><img src="fotos/05.webp" alt="Barbería" loading="lazy" width="240" height="320"><figcaption>Barbería</figcaption></figure><figure class="foto"><img src="fotos/20.webp" alt="Construcción" loading="lazy" width="240" height="320"><figcaption>Construcción</figcaption></figure><figure class="foto"><img src="fotos/06.webp" alt="Yoga" loading="lazy" width="240" height="320"><figcaption>Yoga</figcaption></figure><figure class="foto"><img src="fotos/02.webp" alt="Kinesiología" loading="lazy" width="240" height="320"><figcaption>Kinesiología</figcaption></figure><figure class="foto"><img src="fotos/09.webp" alt="Uñas y manicura" loading="lazy" width="240" height="320"><figcaption>Uñas y manicura</figcaption></figure><figure class="foto"><img src="fotos/18.webp" alt="Pilates" loading="lazy" width="240" height="320"><figcaption>Pilates</figcaption></figure><figure class="foto"><img src="fotos/14.webp" alt="Psicología" loading="lazy" width="240" height="320"><figcaption>Psicología</figcaption></figure><figure class="foto"><img src="fotos/13.webp" alt="Estética facial" loading="lazy" width="240" height="320"><figcaption>Estética facial</figcaption></figure><figure class="foto"><img src="fotos/19.webp" alt="Entrenador personal" loading="lazy" width="240" height="320"><figcaption>Entrenador personal</figcaption></figure></div></div>
 </section>
+
+<section class="panel p-lav planes"><div class="wrap">
+  <div class="sec-head">
+    <h2>Elegí el plan <span class="hl">para tu negocio</span></h2>
+    <p>Todos incluyen a <b>Luna</b>, la agenda, tus clientes, las finanzas y tu página web. Lo que cambia es cuántas personas usan la agenda y cuánto trabaja Luna.</p>
+  </div>
+  <div class="planes-grid"><article class="plan"><h3>Starter</h3><p class="para">Para quien trabaja solo</p><p class="precio"><small>USD</small> 29<span>/mes</span></p><a class="btn" href="#registro">Registrate</a><ul><li><span><b>1</b> empleado con agenda</span></li><li><span><b>50</b> conversaciones de Luna por mes</span></li><li><span><b>50</b> envíos de campañas por WhatsApp</span></li><li><span><b>50</b> avisos por WhatsApp</span></li><li><span><b>100</b> envíos de campañas por email</span></li><li><span><b>10</b> imágenes creadas por Luna</span></li></ul></article><article class="plan top"><span class="sello">Recomendado</span><h3>Smart</h3><p class="para">Para equipos de hasta 3 personas</p><p class="precio"><small>USD</small> 39<span>/mes</span></p><a class="btn" href="#registro">Registrate</a><ul><li><span><b>3</b> empleados con agenda</span></li><li><span><b>100</b> conversaciones de Luna por mes</span></li><li><span><b>100</b> envíos de campañas por WhatsApp</span></li><li><span><b>100</b> avisos por WhatsApp</span></li><li><span><b>200</b> envíos de campañas por email</span></li><li><span><b>20</b> imágenes creadas por Luna</span></li></ul></article><article class="plan"><h3>Growth</h3><p class="para">Para equipos de hasta 5 personas</p><p class="precio"><small>USD</small> 59<span>/mes</span></p><a class="btn" href="#registro">Registrate</a><ul><li><span><b>5</b> empleados con agenda</span></li><li><span><b>300</b> conversaciones de Luna por mes</span></li><li><span><b>300</b> envíos de campañas por WhatsApp</span></li><li><span><b>300</b> avisos por WhatsApp</span></li><li><span><b>600</b> envíos de campañas por email</span></li><li><span><b>40</b> imágenes creadas por Luna</span></li></ul></article></div>
+</div></section>
 
 <section class="panel p-lila"><div class="wrap">
   <div class="sec-head"><h2>Preguntas frecuentes</h2></div>
