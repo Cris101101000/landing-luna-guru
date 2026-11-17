@@ -140,15 +140,108 @@
   if (v) document.getElementById('f-rubro').value = v;
 })();
 
-// Vista previa: el formulario valida pero no envía nada.
-document.getElementById('form-registro').addEventListener('submit', function (e) {
-  e.preventDefault();
+// Envía el registro al formulario de HubSpot de gurú «Piloto Luna – Registro landing (Gurú)»
+// (portal 251261). Usa la API pública de envíos de formularios de HubSpot: no lleva token.
+(function registroHubSpot() {
+  var URL_HS = 'https://api.hsforms.com/submissions/v3/integration/submit/251261/cf62c5ba-7037-4dfe-a289-13f38ed98ca1';
+  // En la landing el rubro va con guiones; en HubSpot, con guiones bajos.
+  var RUBRO = {
+    'belleza-estetica': 'belleza_estetica',
+    'wellness-gimnasios': 'wellness_gimnasios',
+    'salud-odontologia': 'salud_odontologia',
+    'construccion': 'construccion',
+    'otro': 'otro'
+  };
+  // Valores de campaña acordados con gurú: con ellos sus procesos reconocen al piloto.
+  // odoo_producto_base se suma cuando se confirme el valor.
+  var CAMPANA = {
+    pais_: 'Argentina',
+    leadin_beschreibung_35bedb45241d6b3f70fa6f56197c3361: 'Bewe Meta - Generación de Leads 2026',
+    odoo_fuente_interaccion: 'Pago',
+    odoo_tactica: 'Landing con form'
+  };
+
+  // Número normalizado para WhatsApp: solo dígitos, sin 0 inicial y, en Argentina, con el 9 de celular.
+  function telefono(codigo, numero) {
+    var d = numero.replace(/\D/g, '').replace(/^0+/, '');
+    if (codigo === '+54' && d.charAt(0) !== '9') d = '9' + d;
+    return codigo + d;
+  }
+  // Las UTM del anuncio se guardan en el navegador al llegar, para no perderlas si la
+  // persona se registra en otra visita sin UTM en la URL. Valen 30 días; un anuncio nuevo las reemplaza.
+  var CLAVES_UTM = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'];
+  function utmDelAnuncio() {
+    var q = new URLSearchParams(location.search), deLaUrl = {}, hay = false;
+    CLAVES_UTM.forEach(function (k) { var v = q.get(k); if (v) { deLaUrl[k] = v; hay = true; } });
+    try {
+      if (hay) {
+        localStorage.setItem('luna_utm', JSON.stringify({ utm: deLaUrl, ts: Date.now() }));
+        return deLaUrl;
+      }
+      var guardadas = JSON.parse(localStorage.getItem('luna_utm') || 'null');
+      if (guardadas && Date.now() - guardadas.ts < 30 * 864e5) return guardadas.utm;
+    } catch (err) {}
+    return deLaUrl;
+  }
+  var UTM = utmDelAnuncio();
+
+  function cookie(nombre) {
+    var m = document.cookie.match(new RegExp('(?:^|; )' + nombre + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : undefined;
+  }
+
+  var form = document.getElementById('form-registro');
   var aviso = document.getElementById('form-aviso');
-  aviso.hidden = false;
-  aviso.textContent = this.checkValidity()
-    ? 'Vista previa: así quedaría el registro. Este formulario todavía no envía datos.'
-    : 'Completá todos los campos y marcá la casilla de WhatsApp.';
-});
+  var boton = form.querySelector('button[type="submit"]');
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    aviso.hidden = false;
+    if (!form.checkValidity()) {
+      aviso.textContent = 'Completá todos los campos y marcá la casilla de WhatsApp.';
+      return;
+    }
+    var campos = {
+      firstname: form.nombre.value.trim(),
+      phone: telefono(form.pais.value, form.whatsapp.value),
+      email: form.correo.value.trim(),
+      pl_nombre_negocio: form.negocio.value.trim(),
+      pl_rubro: RUBRO[form.rubro.value] || 'otro',
+      pl_consentimiento_whatsapp: 'true',
+      utm_source: UTM.utm_source || '',
+      utm_medium: UTM.utm_medium || '',
+      utm_campaign: UTM.utm_campaign || '',
+      utm_content: UTM.utm_content || ''
+    };
+    Object.keys(CAMPANA).forEach(function (k) { campos[k] = CAMPANA[k]; });
+    var fields = Object.keys(campos).filter(function (k) { return campos[k]; }).map(function (k) {
+      return { objectTypeId: '0-1', name: k, value: campos[k] };
+    });
+    var context = { pageUri: location.href, pageName: document.title };
+    var hutk = cookie('hubspotutk');
+    if (hutk) context.hutk = hutk;
+
+    boton.disabled = true;
+    aviso.textContent = 'Enviando…';
+    fetch(URL_HS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: fields, context: context })
+    })
+      .then(function (r) {
+        if (!r.ok) return r.text().then(function (t) { throw new Error(r.status + ' ' + t); });
+      })
+      .then(function () {
+        form.reset();
+        aviso.textContent = '¡Listo! En unos minutos te escribimos por WhatsApp.';
+      })
+      .catch(function (err) {
+        console.error('Registro en HubSpot', err);
+        aviso.textContent = 'No pudimos enviar tu registro. Probá de nuevo en un momento.';
+      })
+      .then(function () { boton.disabled = false; });
+  });
+})();
 
 // Cada animación se muestra cuando ya dibujó algo. Mientras tanto, o si el
 // navegador no la puede cargar, queda a la vista su imagen fija.

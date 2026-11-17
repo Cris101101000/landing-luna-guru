@@ -120,6 +120,7 @@ html = f'''<!doctype html>
 {luna_css}
 {page_css}
 </style>
+<script id="hs-script-loader" async defer src="//js.hs-scripts.com/251261.js"></script>
 </head>
 {body}
 </html>'''

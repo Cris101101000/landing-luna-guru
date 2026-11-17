@@ -23,4 +23,4 @@ Eso genera `fuente/guru-landing-luna.html`. Después se copia a `index.html` en 
 
 ## Pendiente
 
-El formulario es una vista previa: valida los campos pero no envía datos. Se reemplaza por el formulario de HubSpot de gurú.
+El formulario envía cada registro al formulario de HubSpot de gurú «Piloto Luna – Registro landing (Gurú)» (portal 251261) por la API pública de envíos, con el rubro, el teléfono normalizado, las UTM y los campos de campaña acordados con gurú. La página también carga el código de seguimiento de HubSpot. Falta sumar odoo_producto_base cuando se confirme el valor.
