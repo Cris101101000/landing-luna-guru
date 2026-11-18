@@ -109,6 +109,12 @@ html = f'''<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<!-- Google Tag Manager de gurú (GTM-KHV2Q6WD) -->
+<script>(function(w,d,s,l,i){{w[l]=w[l]||[];w[l].push({{'gtm.start':
+new Date().getTime(),event:'gtm.js'}});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+}})(window,document,'script','dataLayer','GTM-KHV2Q6WD');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Luna, la IA que lleva tu negocio | gurú</title>
 <meta name="description" content="Luna atiende a tus clientes por WhatsApp, Instagram, Facebook y tu web, les da turno y te cuenta cómo va tu negocio. Registrate y ponela a trabajar.">

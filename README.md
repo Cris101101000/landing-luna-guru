@@ -21,6 +21,8 @@ Eso genera `fuente/guru-landing-luna.html`. Después se copia a `index.html` en 
 
 `escenas.py` y `voseo.py` copian las animaciones desde la web de Bewe y pasan sus textos a voseo. Solo hacen falta si cambian las animaciones.
 
-## Pendiente
+## Formulario y medición
 
-El formulario es una vista previa: valida los campos pero no envía datos. Se reemplaza por el formulario de HubSpot de gurú.
+- El formulario de registro es el nativo de HubSpot de gurú (portal 251261). Se abre en la ventana de «Registrate».
+- La página carga el Tag Manager de gurú (`GTM-KHV2Q6WD`).
+- Cuando el formulario se envía bien, la página manda a Tag Manager el evento `lunaos_lead`, con `event_id` y `user_data` (email, phone, first_name, last_name). Lo recogen la etiqueta «LunaOS - GA4 lead» del contenedor web y «LunaOS - Meta CAPI - Lead» del server, que se lo envía a Meta como `Lead`.

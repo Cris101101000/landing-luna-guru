@@ -232,3 +232,12 @@ header.top img { height: 36px; width: auto; display: block; }
 @media (max-width: 900px) {
   .planes-grid { grid-template-columns: 1fr; max-width: 460px; gap: 28px; }
 }
+
+/* Formulario de HubSpot dentro de la ventana de registro. */
+.hs-caja { min-height: 320px; }
+.hs-caja iframe { width: 100% !important; }
+.hs-caja .hs-form fieldset { max-width: none !important; }
+.hs-caja .hs-form .input { margin-right: 0 !important; }
+.hs-caja .hs-form input[type="text"], .hs-caja .hs-form input[type="email"], .hs-caja .hs-form input[type="tel"], .hs-caja .hs-form select, .hs-caja .hs-form textarea { width: 100% !important; box-sizing: border-box; font: inherit; font-size: 16px; color: var(--ink); background: #fff; border: 1.5px solid var(--borde); border-radius: 12px; padding: 11px 13px; }
+.hs-caja .hs-form label { font-size: 14px; font-weight: 600; }
+.hs-caja .hs-form .hs-button { font: inherit; font-weight: 700; font-size: 17px; width: 100%; border: 0; border-radius: 999px; padding: 15px 24px; background: var(--lima); color: var(--ink); cursor: pointer; }

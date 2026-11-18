@@ -2,6 +2,12 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<!-- Google Tag Manager de gurú (GTM-KHV2Q6WD) -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-KHV2Q6WD');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="favicon.ico">
@@ -3846,9 +3852,19 @@ header.top img { height: 36px; width: auto; display: block; }
   .planes-grid { grid-template-columns: 1fr; max-width: 460px; gap: 28px; }
 }
 
+/* Formulario de HubSpot dentro de la ventana de registro. */
+.hs-caja { min-height: 320px; }
+.hs-caja iframe { width: 100% !important; }
+.hs-caja .hs-form fieldset { max-width: none !important; }
+.hs-caja .hs-form .input { margin-right: 0 !important; }
+.hs-caja .hs-form input[type="text"], .hs-caja .hs-form input[type="email"], .hs-caja .hs-form input[type="tel"], .hs-caja .hs-form select, .hs-caja .hs-form textarea { width: 100% !important; box-sizing: border-box; font: inherit; font-size: 16px; color: var(--ink); background: #fff; border: 1.5px solid var(--borde); border-radius: 12px; padding: 11px 13px; }
+.hs-caja .hs-form label { font-size: 14px; font-weight: 600; }
+.hs-caja .hs-form .hs-button { font: inherit; font-weight: 700; font-size: 17px; width: 100%; border: 0; border-radius: 999px; padding: 15px 24px; background: var(--lima); color: var(--ink); cursor: pointer; }
+
 </style>
 </head>
 <body>
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KHV2Q6WD" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <header class="top"><div class="wrap">
   <img src="logo-guru.png" alt="gurú" width="63" height="34">
   <a class="btn chico" href="#registro">Registrate</a>
@@ -3938,23 +3954,12 @@ header.top img { height: 36px; width: auto; display: block; }
 </main>
 
 <!-- El formulario se abre dentro de la página: todos los botones «Registrate»
-     abren esta ventana. Campos acordados con Wen: los cinco obligatorios y la
-     casilla de WhatsApp. En HubSpot se reemplaza por el formulario nativo. -->
+     abren esta ventana. El formulario es el nativo de HubSpot de gurú. -->
 <dialog class="modal" id="modal-registro" aria-labelledby="m-titulo">
   <button class="cerrar" type="button" aria-label="Cerrar">&times;</button>
   <h3 id="m-titulo">Registrate</h3>
   <p class="m-sub">Dejá tus datos y te escribimos por WhatsApp.</p>
-  <form class="form" id="form-registro" novalidate>
-    <div class="campo"><label for="f-nombre">Nombre</label><input id="f-nombre" name="nombre" autocomplete="given-name" required></div>
-    <div class="campo"><label for="f-wa">WhatsApp</label><div class="wa"><select name="pais" aria-label="Código de país"><option value="+54">+54</option></select><input id="f-wa" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="11 2345 6789" required></div></div>
-    <div class="campo"><label for="f-mail">Correo</label><input id="f-mail" name="correo" type="email" autocomplete="email" required></div>
-    <div class="campo"><label for="f-neg">Nombre del negocio</label><input id="f-neg" name="negocio" autocomplete="organization" required></div>
-    <div class="campo ancho"><label for="f-rubro">Rubro</label><select id="f-rubro" name="rubro" required><option value="" selected disabled>Elegí tu rubro</option><option value="belleza-estetica">Belleza y estética</option><option value="wellness-gimnasios">Wellness y gimnasios</option><option value="salud-odontologia">Salud y odontología</option><option value="construccion">Construcción</option><option value="otro">Otro</option></select></div>
-    <label class="check ancho"><input type="checkbox" name="consentimiento_whatsapp" required><span>Acepto que gurú me escriba por WhatsApp sobre mi registro.</span></label>
-    <button class="btn ancho" type="submit">Registrate</button>
-    <p class="legal ancho">Al registrarte aceptás la <a href="https://www.gurusoluciones.com/legalesargentina" target="_blank" rel="noopener">política de privacidad de gurú</a>.</p>
-    <p class="aviso ancho" id="form-aviso" hidden></p>
-  </form>
+  <div class="hs-caja" id="hs-form"></div>
 </dialog>
 
 <script>
@@ -3981,24 +3986,69 @@ header.top img { height: 36px; width: auto; display: block; }
   modal.addEventListener('click', function (e) { if (e.target === modal) modal.close(); });
 })();
 
-// El rubro llega desde el anuncio (?rubro=belleza o la campaña en utm_campaign)
-// y queda elegido en el formulario.
-(function rubroDesdeLaPauta() {
-  var q = new URLSearchParams(location.search);
-  var r = (q.get('rubro') || q.get('utm_campaign') || '').toLowerCase();
-  var v = /belleza|estetica/.test(r) ? 'belleza-estetica' : /wellness|gimnasio|gym/.test(r) ? 'wellness-gimnasios' : /salud|odonto/.test(r) ? 'salud-odontologia' : /constru|obra/.test(r) ? 'construccion' : '';
-  if (v) document.getElementById('f-rubro').value = v;
+// Formulario de HubSpot de gurú. Cuando se envía bien, avisa a Tag Manager
+// con el evento «lunaos_lead» (lo usan «LunaOS - GA4 lead» en el contenedor
+// web y «LunaOS - Meta CAPI - Lead» en el server). Los datos van con los nombres
+// que leen las variables DLV - event_id y DLV - user_data.* que ya existen.
+(function formularioHubSpot() {
+  var avisado = false;
+  function telefono(v) {
+    // Con «+» ya trae el código de país (el selector de HubSpot lo agrega).
+    // Sin él, se asume Argentina, que es donde corre la pauta.
+    var s = String(v || '').trim(), d = s.replace(/\D/g, '');
+    if (!d) return '';
+    return s.charAt(0) === '+' || d.indexOf('54') === 0 ? d : '54' + d.replace(/^0/, '');
+  }
+  function avisa(v) {
+    if (avisado) return;
+    avisado = true;
+    v = v || {};
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'lunaos_lead',
+      event_id: 'lunaos_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10),
+      user_data: {
+        email: String(v.email || '').trim().toLowerCase(),
+        phone: telefono(v.mobilephone || v.phone || v.whatsapp),
+        first_name: String(v.firstname || '').trim(),
+        last_name: String(v.lastname || '').trim()
+      }
+    });
+  }
+  // Los nombres de los campos pueden venir como «0-1/email»: se queda lo último.
+  function aObjeto(lista) {
+    var o = {};
+    (lista || []).forEach(function (c) { o[String(c.name).split('/').pop()] = c.value; });
+    return o;
+  }
+  function plano(valores) {
+    if (Array.isArray(valores)) return aObjeto(valores);
+    var o = {};
+    Object.keys(valores || {}).forEach(function (k) { o[k.split('/').pop()] = valores[k]; });
+    return o;
+  }
+  // Formularios nuevos de HubSpot (se dibujan en un iframe).
+  window.addEventListener('hs-form-event:on-submission:success', function (e) {
+    try {
+      window.HubSpotFormsV4.getFormFromEvent(e).getFormFieldValues()
+        .then(function (l) { avisa(aObjeto(l)); }, function () { avisa(); });
+    } catch (err) { avisa(); }
+  });
+  var s = document.createElement('script');
+  s.src = 'https://js.hsforms.net/forms/embed/v2.js';
+  s.charset = 'utf-8';
+  s.onload = function () {
+    hbspt.forms.create({
+      portalId: '251261',
+      formId: 'cf62c5ba-7037-4dfe-a289-13f38ed98ca1',
+      region: 'na1',
+      target: '#hs-form',
+      // Formularios clásicos de HubSpot.
+      onFormSubmitted: function (form, data) { avisa(plano(data && data.submissionValues)); }
+    });
+  };
+  document.body.appendChild(s);
 })();
-
-// Vista previa: el formulario valida pero no envía nada.
-document.getElementById('form-registro').addEventListener('submit', function (e) {
-  e.preventDefault();
-  var aviso = document.getElementById('form-aviso');
-  aviso.hidden = false;
-  aviso.textContent = this.checkValidity()
-    ? 'Vista previa: así quedaría el registro. Este formulario todavía no envía datos.'
-    : 'Completá todos los campos y marcá la casilla de WhatsApp.';
-});
 
 // Cada animación se muestra cuando ya dibujó algo. Mientras tanto, o si el
 // navegador no la puede cargar, queda a la vista su imagen fija.
