@@ -3986,6 +3986,36 @@ header.top img { height: 36px; width: auto; display: block; }
   modal.addEventListener('click', function (e) { if (e.target === modal) modal.close(); });
 })();
 
+// UTM de la pauta guardadas 30 días (luna_utm). Corre antes de que se cree el
+// formulario de HubSpot: si la URL trae UTM, se guardan con su fecha (un anuncio
+// nuevo reemplaza las anteriores); si no trae y hay guardadas de menos de 30 días,
+// se agregan a la URL sin recargar para que el formulario nativo las tome en sus
+// campos ocultos.
+(function utmGuardadas() {
+  try {
+    var CLAVES = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'];
+    var LLAVE = 'luna_utm', VIGENCIA = 30 * 24 * 60 * 60 * 1000;
+    var url = new URL(window.location.href);
+    var traidas = {}, hay = false;
+    CLAVES.forEach(function (k) {
+      var v = url.searchParams.get(k);
+      if (v) { traidas[k] = v; hay = true; }
+    });
+    if (hay) {
+      window.localStorage.setItem(LLAVE, JSON.stringify({ fecha: Date.now(), utm: traidas }));
+      return;
+    }
+    var g = JSON.parse(window.localStorage.getItem(LLAVE) || 'null');
+    if (!g || !g.utm || typeof g.fecha !== 'number') return;
+    if (Date.now() - g.fecha >= VIGENCIA) { window.localStorage.removeItem(LLAVE); return; }
+    var agregadas = false;
+    CLAVES.forEach(function (k) {
+      if (g.utm[k]) { url.searchParams.set(k, g.utm[k]); agregadas = true; }
+    });
+    if (agregadas) window.history.replaceState(window.history.state, '', url.href);
+  } catch (e) { /* sin localStorage o URL rara: el formulario sigue igual */ }
+})();
+
 // Formulario de HubSpot de gurú. Cuando se envía bien, avisa a Tag Manager
 // con el evento «lunaos_lead» (lo usan «LunaOS - GA4 lead» en el contenedor
 // web y «LunaOS - Meta CAPI - Lead» en el server). Los datos van con los nombres
