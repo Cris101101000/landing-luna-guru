@@ -115,6 +115,8 @@ new Date().getTime(),event:'gtm.js'}});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 }})(window,document,'script','dataLayer','GTM-KHV2Q6WD');</script>
+<!-- Seguimiento de HubSpot de gurú (portal 251261) -->
+<script id="hs-script-loader" async defer src="//js.hs-scripts.com/251261.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Luna, la IA que lleva tu negocio | gurú</title>
 <meta name="description" content="Luna atiende a tus clientes por WhatsApp, Instagram, Facebook y tu web, les da turno y te cuenta cómo va tu negocio. Registrate y ponela a trabajar.">
