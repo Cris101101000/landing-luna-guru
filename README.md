@@ -23,6 +23,8 @@ Eso genera `fuente/guru-landing-luna.html`. Después se copia a `index.html` en 
 
 ## Formulario y medición
 
-- El formulario de registro es el nativo de HubSpot de gurú (portal 251261). Se abre en la ventana de «Registrate».
+- El formulario de registro es propio de la landing y se abre en la ventana de «Registrate». Envía cada registro al formulario «Piloto Luna – Registro landing (Gurú)» de HubSpot (portal 251261) por la API pública de envíos, con rubro, teléfono +549, UTM guardadas 30 días (`luna_utm`) y los campos de campaña.
+- El envío va con `pageUri` `https://www.gurusoluciones.com.ar/luna` y `pageName` «Luna – gurú» fijos: HubSpot descarta los envíos cuyo origen es lunaos.gurusoluciones.com.
+- Solo si HubSpot responde 200 se muestra «¡Gracias!» y se avisa a Tag Manager; si no, la persona ve un error y puede reintentar.
 - La página carga el Tag Manager de gurú (`GTM-KHV2Q6WD`).
-- Cuando el formulario se envía bien, la página manda a Tag Manager el evento `lunaos_lead`, con `event_id` y `user_data` (email, phone, first_name, last_name). Lo recogen la etiqueta «LunaOS - GA4 lead» del contenedor web y «LunaOS - Meta CAPI - Lead» del server, que se lo envía a Meta como `Lead`.
+- Cuando el envío sale bien, la página manda a Tag Manager el evento `lunaos_lead`, con `event_id` y `user_data` (email, phone, first_name, last_name). Lo recogen la etiqueta «LunaOS - GA4 lead» del contenedor web y «LunaOS - Meta CAPI - Lead» del server, que se lo envía a Meta como `Lead`.
