@@ -89,12 +89,23 @@
 </main>
 
 <!-- El formulario se abre dentro de la página: todos los botones «Registrate»
-     abren esta ventana. El formulario es el nativo de HubSpot de gurú. -->
+     abren esta ventana. Es el formulario propio de la landing: envía a HubSpot
+     por la API de formularios (ver registroHubSpot más abajo). -->
 <dialog class="modal" id="modal-registro" aria-labelledby="m-titulo">
   <button class="cerrar" type="button" aria-label="Cerrar">&times;</button>
   <h3 id="m-titulo">Registrate</h3>
   <p class="m-sub">Dejá tus datos y te escribimos por WhatsApp.</p>
-  <div class="hs-caja" id="hs-form"></div>
+  <form class="form" id="form-registro" novalidate>
+    <div class="campo"><label for="f-nombre">Nombre</label><input id="f-nombre" name="nombre" autocomplete="given-name" required></div>
+    <div class="campo"><label for="f-wa">WhatsApp</label><div class="wa"><select name="pais" aria-label="Código de país"><option value="+54">+54</option></select><input id="f-wa" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="11 2345 6789" required></div></div>
+    <div class="campo"><label for="f-mail">Correo</label><input id="f-mail" name="correo" type="email" autocomplete="email" required></div>
+    <div class="campo"><label for="f-neg">Nombre del negocio</label><input id="f-neg" name="negocio" autocomplete="organization" required></div>
+    <div class="campo ancho"><label for="f-rubro">Rubro</label><select id="f-rubro" name="rubro" required><option value="" selected disabled>Elegí tu rubro</option><option value="belleza-estetica">Belleza y estética</option><option value="wellness-gimnasios">Wellness y gimnasios</option><option value="salud-odontologia">Salud y odontología</option><option value="construccion">Construcción</option><option value="otro">Otro</option></select></div>
+    <label class="check ancho"><input type="checkbox" name="consentimiento_whatsapp" required><span>Acepto que gurú me escriba por WhatsApp sobre mi registro.</span></label>
+    <button class="btn ancho" type="submit">Registrate</button>
+    <p class="legal ancho">Al registrarte aceptás la <a href="https://www.gurusoluciones.com/legalesargentina" target="_blank" rel="noopener">política de privacidad de gurú</a>.</p>
+    <p class="aviso ancho" id="form-aviso" hidden aria-live="polite"></p>
+  </form>
 </dialog>
 
 <script>
@@ -121,98 +132,157 @@
   modal.addEventListener('click', function (e) { if (e.target === modal) modal.close(); });
 })();
 
-// UTM de la pauta guardadas 30 días (luna_utm). Corre antes de que se cree el
-// formulario de HubSpot: si la URL trae UTM, se guardan con su fecha (un anuncio
-// nuevo reemplaza las anteriores); si no trae y hay guardadas de menos de 30 días,
-// se agregan a la URL sin recargar para que el formulario nativo las tome en sus
-// campos ocultos.
-(function utmGuardadas() {
-  try {
-    var CLAVES = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'];
-    var LLAVE = 'luna_utm', VIGENCIA = 30 * 24 * 60 * 60 * 1000;
-    var url = new URL(window.location.href);
-    var traidas = {}, hay = false;
-    CLAVES.forEach(function (k) {
-      var v = url.searchParams.get(k);
-      if (v) { traidas[k] = v; hay = true; }
-    });
-    if (hay) {
-      window.localStorage.setItem(LLAVE, JSON.stringify({ fecha: Date.now(), utm: traidas }));
-      return;
-    }
-    var g = JSON.parse(window.localStorage.getItem(LLAVE) || 'null');
-    if (!g || !g.utm || typeof g.fecha !== 'number') return;
-    if (Date.now() - g.fecha >= VIGENCIA) { window.localStorage.removeItem(LLAVE); return; }
-    var agregadas = false;
-    CLAVES.forEach(function (k) {
-      if (g.utm[k]) { url.searchParams.set(k, g.utm[k]); agregadas = true; }
-    });
-    if (agregadas) window.history.replaceState(window.history.state, '', url.href);
-  } catch (e) { /* sin localStorage o URL rara: el formulario sigue igual */ }
+// El rubro llega desde el anuncio (?rubro=belleza o la campaña en utm_campaign)
+// y queda elegido en el formulario.
+(function rubroDesdeLaPauta() {
+  var q = new URLSearchParams(location.search);
+  var r = (q.get('rubro') || q.get('utm_campaign') || '').toLowerCase();
+  var v = /belleza|estetica/.test(r) ? 'belleza-estetica' : /wellness|gimnasio|gym/.test(r) ? 'wellness-gimnasios' : /salud|odonto/.test(r) ? 'salud-odontologia' : /constru|obra/.test(r) ? 'construccion' : '';
+  if (v) document.getElementById('f-rubro').value = v;
 })();
 
-// Formulario de HubSpot de gurú. Cuando se envía bien, avisa a Tag Manager
-// con el evento «lunaos_lead» (lo usan «LunaOS - GA4 lead» en el contenedor
-// web y «LunaOS - Meta CAPI - Lead» en el server). Los datos van con los nombres
-// que leen las variables DLV - event_id y DLV - user_data.* que ya existen.
-(function formularioHubSpot() {
-  var avisado = false;
-  function telefono(v) {
-    // Con «+» ya trae el código de país (el selector de HubSpot lo agrega).
-    // Sin él, se asume Argentina, que es donde corre la pauta.
-    var s = String(v || '').trim(), d = s.replace(/\D/g, '');
-    if (!d) return '';
-    return s.charAt(0) === '+' || d.indexOf('54') === 0 ? d : '54' + d.replace(/^0/, '');
+// Envía el registro al formulario de HubSpot de gurú «Piloto Luna – Registro landing (Gurú)»
+// (portal 251261) por la API pública de envíos de formularios: no lleva token.
+// Cuando HubSpot responde 200, avisa a Tag Manager con el evento «lunaos_lead» (lo usan
+// «LunaOS - GA4 lead» en el contenedor web y «LunaOS - Meta CAPI - Lead» en el server),
+// con los mismos datos que mandaba el formulario nativo: event_id y user_data.*.
+(function registroHubSpot() {
+  var URL_HS = 'https://api.hsforms.com/submissions/v3/integration/submit/251261/cf62c5ba-7037-4dfe-a289-13f38ed98ca1';
+  // En la landing el rubro va con guiones; en HubSpot, con guiones bajos.
+  var RUBRO = {
+    'belleza-estetica': 'belleza_estetica',
+    'wellness-gimnasios': 'wellness_gimnasios',
+    'salud-odontologia': 'salud_odontologia',
+    'construccion': 'construccion',
+    'otro': 'otro'
+  };
+  // Valores de campaña acordados con gurú: con ellos sus procesos reconocen al piloto.
+  var CAMPANA = {
+    pais_: 'Argentina',
+    leadin_beschreibung_35bedb45241d6b3f70fa6f56197c3361: 'Bewe Meta - Generación de Leads 2026',
+    odoo_fuente_interaccion: 'Pago',
+    odoo_tactica: 'Landing con form'
+  };
+
+  // Número normalizado para WhatsApp: solo dígitos y, en Argentina, +549 + código de área + número.
+  // Se quitan el 0 inicial, el 54 o el 9 si la persona los escribió, y el 15 del celular
+  // («11 15 2345 6789» o «0351 15 123 4567»), que en WhatsApp no va.
+  function telefono(codigo, numero) {
+    var d = numero.replace(/\D/g, '').replace(/^0+/, '');
+    if (codigo !== '+54') return codigo + d;
+    if (d.length > 11 && d.indexOf('54') === 0) d = d.slice(2).replace(/^0+/, '');
+    if (d.length === 11 && d.charAt(0) === '9') d = d.slice(1);
+    if (d.length === 12) {
+      var k = d.indexOf('11') === 0 ? 2 : d.substr(3, 2) === '15' ? 3 : 4;
+      if (d.substr(k, 2) === '15') d = d.slice(0, k) + d.slice(k + 2);
+    }
+    return '+549' + d;
   }
-  function avisa(v) {
-    if (avisado) return;
-    avisado = true;
-    v = v || {};
+
+  // UTM de la pauta guardadas 30 días (luna_utm). Si la URL trae UTM, se guardan con su
+  // fecha (un anuncio nuevo reemplaza las anteriores); si no trae, se usan las guardadas
+  // de menos de 30 días, para no perderlas si la persona se registra en otra visita.
+  var CLAVES_UTM = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'];
+  function utmDelAnuncio() {
+    var deLaUrl = {}, hay = false;
+    try {
+      var q = new URLSearchParams(location.search);
+      CLAVES_UTM.forEach(function (k) { var v = q.get(k); if (v) { deLaUrl[k] = v; hay = true; } });
+      if (hay) {
+        localStorage.setItem('luna_utm', JSON.stringify({ fecha: Date.now(), utm: deLaUrl }));
+        return deLaUrl;
+      }
+      var g = JSON.parse(localStorage.getItem('luna_utm') || 'null');
+      var fecha = g && (g.fecha || g.ts);
+      if (g && g.utm && typeof fecha === 'number') {
+        if (Date.now() - fecha < 30 * 864e5) return g.utm;
+        localStorage.removeItem('luna_utm');
+      }
+    } catch (err) { /* sin localStorage: van solo las UTM de la URL */ }
+    return deLaUrl;
+  }
+  var UTM = utmDelAnuncio();
+
+  function cookie(nombre) {
+    try {
+      var m = document.cookie.match(new RegExp('(?:^|; )' + nombre + '=([^;]*)'));
+      return m ? decodeURIComponent(m[1]) : undefined;
+    } catch (err) { return undefined; }
+  }
+
+  // Evento de Tag Manager, igual al que mandaba el formulario nativo de HubSpot.
+  function avisaTagManager(c) {
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({
       event: 'lunaos_lead',
       event_id: 'lunaos_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10),
       user_data: {
-        email: String(v.email || '').trim().toLowerCase(),
-        phone: telefono(v.mobilephone || v.phone || v.whatsapp),
-        first_name: String(v.firstname || '').trim(),
-        last_name: String(v.lastname || '').trim()
+        email: String(c.email || '').trim().toLowerCase(),
+        phone: String(c.phone || '').replace(/\D/g, ''),
+        first_name: String(c.firstname || '').trim(),
+        last_name: ''
       }
     });
   }
-  // Los nombres de los campos pueden venir como «0-1/email»: se queda lo último.
-  function aObjeto(lista) {
-    var o = {};
-    (lista || []).forEach(function (c) { o[String(c.name).split('/').pop()] = c.value; });
-    return o;
-  }
-  function plano(valores) {
-    if (Array.isArray(valores)) return aObjeto(valores);
-    var o = {};
-    Object.keys(valores || {}).forEach(function (k) { o[k.split('/').pop()] = valores[k]; });
-    return o;
-  }
-  // Formularios nuevos de HubSpot (se dibujan en un iframe).
-  window.addEventListener('hs-form-event:on-submission:success', function (e) {
-    try {
-      window.HubSpotFormsV4.getFormFromEvent(e).getFormFieldValues()
-        .then(function (l) { avisa(aObjeto(l)); }, function () { avisa(); });
-    } catch (err) { avisa(); }
-  });
-  var s = document.createElement('script');
-  s.src = 'https://js.hsforms.net/forms/embed/v2.js';
-  s.charset = 'utf-8';
-  s.onload = function () {
-    hbspt.forms.create({
-      portalId: '251261',
-      formId: 'cf62c5ba-7037-4dfe-a289-13f38ed98ca1',
-      region: 'na1',
-      target: '#hs-form',
-      // Formularios clásicos de HubSpot.
-      onFormSubmitted: function (form, data) { avisa(plano(data && data.submissionValues)); }
+
+  var form = document.getElementById('form-registro');
+  var aviso = document.getElementById('form-aviso');
+  var boton = form.querySelector('button[type="submit"]');
+  var enviando = false;
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (enviando) return;
+    aviso.hidden = false;
+    if (!form.checkValidity()) {
+      aviso.textContent = 'Completá todos los campos y marcá la casilla de WhatsApp.';
+      return;
+    }
+    var campos = {
+      firstname: form.nombre.value.trim(),
+      phone: telefono(form.pais.value, form.whatsapp.value),
+      email: form.correo.value.trim(),
+      pl_nombre_negocio: form.negocio.value.trim(),
+      pl_rubro: RUBRO[form.rubro.value] || 'otro',
+      pl_consentimiento_whatsapp: 'true',
+      utm_source: UTM.utm_source || '',
+      utm_medium: UTM.utm_medium || '',
+      utm_campaign: UTM.utm_campaign || '',
+      utm_content: UTM.utm_content || ''
+    };
+    Object.keys(CAMPANA).forEach(function (k) { campos[k] = CAMPANA[k]; });
+    var fields = Object.keys(campos).filter(function (k) { return campos[k]; }).map(function (k) {
+      return { objectTypeId: '0-1', name: k, value: campos[k] };
     });
-  };
-  document.body.appendChild(s);
+    // pageUri y pageName van fijos a propósito: HubSpot descarta todos los envíos cuya
+    // página de origen es lunaos.gurusoluciones.com (probado el 20-nov-2026: el mismo envío
+    // con origen https://www.gurusoluciones.com.ar/luna, o sin origen, sí se guarda).
+    // No usar location.href aquí hasta que gurú habilite ese dominio en HubSpot.
+    var context = { pageUri: 'https://www.gurusoluciones.com.ar/luna', pageName: 'Luna – gurú' };
+    var hutk = cookie('hubspotutk');
+    if (hutk) context.hutk = hutk;
+
+    enviando = true;
+    boton.disabled = true;
+    aviso.textContent = 'Enviando…';
+    fetch(URL_HS, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: fields, context: context })
+    })
+      .then(function (r) {
+        if (r.status !== 200) return r.text().then(function (t) { throw new Error(r.status + ' ' + t); });
+        form.reset();
+        aviso.textContent = '¡Gracias! En unos minutos te escribimos por WhatsApp.';
+        try { avisaTagManager(campos); } catch (err) { console.error('lunaos_lead', err); }
+      })
+      .catch(function (err) {
+        // Los datos quedan cargados: la persona reintenta con el mismo botón.
+        console.error('Registro en HubSpot', err);
+        aviso.textContent = 'No pudimos enviar tu registro. Revisá tu conexión y tocá «Registrate» para intentarlo de nuevo.';
+      })
+      .then(function () { enviando = false; boton.disabled = false; });
+  });
 })();
 
 // Cada animación se muestra cuando ya dibujó algo. Mientras tanto, o si el
