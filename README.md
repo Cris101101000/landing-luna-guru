@@ -23,8 +23,21 @@ Eso genera `fuente/guru-landing-luna.html`. Después se copia a `index.html` en 
 
 ## Formulario y medición
 
-- El formulario de registro es propio de la landing y se abre en la ventana de «Registrate». Envía cada registro al formulario «Piloto Luna – Registro landing (Gurú)» de HubSpot (portal 251261) por la API pública de envíos, con rubro, teléfono +549, UTM guardadas 30 días (`luna_utm`) y los campos de campaña.
-- El envío va con `pageUri` `https://www.gurusoluciones.com.ar/luna` y `pageName` «Luna – gurú» fijos: HubSpot descarta los envíos cuyo origen es lunaos.gurusoluciones.com.
-- Solo si HubSpot responde 200 se muestra «¡Gracias!» y se avisa a Tag Manager; si no, la persona ve un error y puede reintentar.
-- La página carga el Tag Manager de gurú (`GTM-KHV2Q6WD`).
-- Cuando el envío sale bien, la página manda a Tag Manager el evento `lunaos_lead`, con `event_id` y `user_data` (email, phone, first_name, last_name). Lo recogen la etiqueta «LunaOS - GA4 lead» del contenedor web y «LunaOS - Meta CAPI - Lead» del server, que se lo envía a Meta como `Lead`.
+### Por qué el formulario es propio y no el embebido de HubSpot
+
+HubSpot descarta todos los envíos cuya página de origen es lunaos.gurusoluciones.com (probado el 20-nov-2026: el mismo envío con origen `https://www.gurusoluciones.com.ar/luna`, o sin origen, sí se guarda). Con el formulario embebido (`hbspt.forms.create`) el origen es siempre la URL de la página, así que los registros se perdían.
+
+Por eso el registro usa el formulario propio de la landing (ventana de «Registrate»), que envía por la API pública de formularios de HubSpot a «Piloto Luna – Registro landing (Gurú)» (portal 251261, formulario `cf62c5ba-7037-4dfe-a289-13f38ed98ca1`) con:
+
+- `pageUri` `https://www.gurusoluciones.com.ar/luna` y `pageName` «Luna – gurú» **fijos**, más `hutk` si existe la cookie de seguimiento. No cambiar `pageUri` por la URL real hasta que gurú habilite el dominio en HubSpot.
+- Nombre, teléfono normalizado a +549 (sin 0 ni 15), correo, negocio, rubro, consentimiento de WhatsApp, UTM y los campos de campaña.
+
+### Si cambia el formulario de HubSpot, hay que cambiar la landing
+
+La landing no lee el formulario de HubSpot: arma los campos en el código (`registroHubSpot` en `fuente/body.html` y en `index.html`). Cualquier campo que se agregue, cambie de nombre o de valores en el formulario de HubSpot hay que replicarlo en la landing. Por ejemplo, `odoo_producto_base` se suma a `CAMPANA` cuando gurú defina su valor; los valores de `pl_rubro` están en `RUBRO`.
+
+### Medición
+
+- La página carga el Tag Manager de gurú (`GTM-KHV2Q6WD`) y el código de seguimiento de HubSpot (portal 251261).
+- Las UTM del anuncio se guardan 30 días en el navegador (`luna_utm`): si la persona vuelve sin UTM, el registro lleva las guardadas.
+- Solo cuando HubSpot responde 200 (registro guardado) se muestra «¡Gracias! En unos minutos te escribimos por WhatsApp.» y se manda a Tag Manager el evento `lunaos_lead`, con `event_id` y `user_data` (email, phone, first_name, last_name). Lo recogen la etiqueta «LunaOS - GA4 lead» del contenedor web y «LunaOS - Meta CAPI - Lead» del server, que se lo envía a Meta como `Lead`. Si HubSpot no confirma, la persona ve un error y puede reintentar, y no se manda el evento.
