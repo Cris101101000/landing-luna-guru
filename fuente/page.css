@@ -161,6 +161,10 @@ header.top img { height: 36px; width: auto; display: block; }
 .legal { margin: 0; font-size: 13px; color: var(--ink2); text-align: center; }
 .legal a { color: var(--deep); font-weight: 600; }
 .aviso { margin: 0; font-size: 14px; background: var(--lav); border-radius: 12px; padding: 10px 14px; text-align: center; }
+.aviso.error { background: #fdecec; color: #b3261e; font-weight: 600; }
+.form .btn:disabled { opacity: 0.6; cursor: wait; }
+.m-listo p { margin: 0 0 22px; font-size: 17px; line-height: 1.5; }
+.m-listo .btn { justify-content: center; width: 100%; }
 @media (max-width: 640px) { .form { grid-template-columns: 1fr; } }
 .pie { margin: 72px 0 0; font-size: 13px; color: rgba(255, 255, 255, 0.55); }
 

@@ -93,6 +93,7 @@
      por la API de formularios (ver registroHubSpot más abajo). -->
 <dialog class="modal" id="modal-registro" aria-labelledby="m-titulo">
   <button class="cerrar" type="button" aria-label="Cerrar">&times;</button>
+  <div id="m-registro">
   <h3 id="m-titulo">Registrate</h3>
   <p class="m-sub">Dejá tus datos y te escribimos por WhatsApp.</p>
   <form class="form" id="form-registro" novalidate>
@@ -100,12 +101,20 @@
     <div class="campo"><label for="f-wa">WhatsApp</label><div class="wa"><select name="pais" aria-label="Código de país"><option value="+54">+54</option></select><input id="f-wa" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="11 2345 6789" required></div></div>
     <div class="campo"><label for="f-mail">Correo</label><input id="f-mail" name="correo" type="email" autocomplete="email" required></div>
     <div class="campo"><label for="f-neg">Nombre del negocio</label><input id="f-neg" name="negocio" autocomplete="organization" required></div>
+    <div class="campo ancho"><label for="f-web">Web o Instagram del negocio (opcional)</label><input id="f-web" name="web" type="text" autocomplete="url" autocapitalize="off" spellcheck="false" placeholder="Ej.: www.tunegocio.com o @tunegocio"></div>
     <div class="campo ancho"><label for="f-rubro">Rubro</label><select id="f-rubro" name="rubro" required><option value="" selected disabled>Elegí tu rubro</option><option value="belleza-estetica">Belleza y estética</option><option value="wellness-gimnasios">Wellness y gimnasios</option><option value="salud-odontologia">Salud y odontología</option><option value="construccion">Construcción</option><option value="otro">Otro</option></select></div>
     <label class="check ancho"><input type="checkbox" name="consentimiento_whatsapp" required><span>Acepto que gurú me escriba por WhatsApp sobre mi registro.</span></label>
     <button class="btn ancho" type="submit">Registrate</button>
     <p class="legal ancho">Al registrarte aceptás la <a href="https://www.gurusoluciones.com/legalesargentina" target="_blank" rel="noopener">política de privacidad de gurú</a>.</p>
     <p class="aviso ancho" id="form-aviso" hidden aria-live="polite"></p>
   </form>
+  </div>
+  <!-- Confirmación: reemplaza al formulario cuando el registro sale bien (ver registroHubSpot). -->
+  <div class="m-listo" id="m-listo" hidden>
+    <h3 id="m-listo-titulo">¡Listo!</h3>
+    <p>En unos minutos te escribimos por WhatsApp desde el <b class="junto">+54 9 11 7267-3523</b>. Agendalo así no se te pierde el mensaje.</p>
+    <button class="btn ancho" type="button" id="m-listo-cerrar">Cerrar</button>
+  </div>
 </dialog>
 
 <script>
@@ -229,12 +238,43 @@
   var aviso = document.getElementById('form-aviso');
   var boton = form.querySelector('button[type="submit"]');
   var enviando = false;
+  var modal = document.getElementById('modal-registro');
+  var registro = document.getElementById('m-registro');
+  var listo = document.getElementById('m-listo');
+  var rubroInicial = form.rubro.value;  // el rubro que trajo el anuncio, si trajo
+  var cierreSolo = null;
+
+  // Registro enviado: la ventana muestra solo la confirmación y se cierra sola a los 8 segundos.
+  function muestraListo(nombre) {
+    document.getElementById('m-listo-titulo').textContent = '¡Listo' + (nombre ? ', ' + nombre : '') + '!';
+    registro.hidden = true;
+    listo.hidden = false;
+    modal.setAttribute('aria-labelledby', 'm-listo-titulo');
+    document.getElementById('m-listo-cerrar').focus();
+    cierreSolo = setTimeout(function () { modal.close(); }, 8000);
+  }
+  // Se cierre como se cierre (Cerrar, la cruz, Esc, clic afuera o sola), si ya se registró,
+  // la próxima vez la ventana abre con el formulario limpio.
+  modal.addEventListener('close', function () {
+    clearTimeout(cierreSolo);
+    if (listo.hidden) return;
+    form.reset();
+    form.rubro.value = rubroInicial;
+    aviso.hidden = true;
+    aviso.textContent = '';
+    aviso.classList.remove('error');
+    listo.hidden = true;
+    registro.hidden = false;
+    modal.setAttribute('aria-labelledby', 'm-titulo');
+  });
+  document.getElementById('m-listo-cerrar').addEventListener('click', function () { modal.close(); });
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     if (enviando) return;
     aviso.hidden = false;
     if (!form.checkValidity()) {
+      aviso.classList.add('error');
       aviso.textContent = 'Completá todos los campos y marcá la casilla de WhatsApp.';
       return;
     }
@@ -243,6 +283,8 @@
       phone: telefono(form.pais.value, form.whatsapp.value),
       email: form.correo.value.trim(),
       pl_nombre_negocio: form.negocio.value.trim(),
+      // Opcional y texto libre (web, @usuario o enlace de Instagram). Vacío no se manda: el filtro de abajo descarta los campos vacíos.
+      pl_web_o_instagram: form.web.value.trim(),
       pl_rubro: RUBRO[form.rubro.value] || 'otro',
       pl_consentimiento_whatsapp: 'true',
       utm_source: UTM.utm_source || '',
@@ -264,6 +306,7 @@
 
     enviando = true;
     boton.disabled = true;
+    aviso.classList.remove('error');
     aviso.textContent = 'Enviando…';
     fetch(URL_HS, {
       method: 'POST',
@@ -272,14 +315,15 @@
     })
       .then(function (r) {
         if (r.status !== 200) return r.text().then(function (t) { throw new Error(r.status + ' ' + t); });
-        form.reset();
-        aviso.textContent = '¡Gracias! En unos minutos te escribimos por WhatsApp.';
+        // Primero la conversión (igual que antes), después la confirmación en pantalla.
         try { avisaTagManager(campos); } catch (err) { console.error('lunaos_lead', err); }
+        muestraListo(campos.firstname);
       })
       .catch(function (err) {
         // Los datos quedan cargados: la persona reintenta con el mismo botón.
         console.error('Registro en HubSpot', err);
-        aviso.textContent = 'No pudimos enviar tu registro. Revisá tu conexión y tocá «Registrate» para intentarlo de nuevo.';
+        aviso.classList.add('error');
+        aviso.textContent = 'No pudimos enviar tu registro. Tus datos siguen cargados: revisá tu conexión y tocá «Registrate» para intentarlo de nuevo.';
       })
       .then(function () { enviando = false; boton.disabled = false; });
   });
