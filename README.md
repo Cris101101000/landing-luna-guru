@@ -31,6 +31,7 @@ Por eso el registro usa el formulario propio de la landing (ventana de «Registr
 
 - `pageUri` `https://www.gurusoluciones.com.ar/luna` y `pageName` «Luna – gurú» **fijos**, más `hutk` si existe la cookie de seguimiento. No cambiar `pageUri` por la URL real hasta que gurú habilite el dominio en HubSpot.
 - Nombre, teléfono normalizado a +549 (sin 0 ni 15), correo, negocio, rubro, consentimiento de WhatsApp, UTM y los campos de campaña.
+- `pl_web_o_instagram` («Web o Instagram del negocio», opcional y texto libre): solo se manda si la persona escribió algo. Los campos vacíos nunca se mandan.
 
 ### Si cambia el formulario de HubSpot, hay que cambiar la landing
 
@@ -40,4 +41,4 @@ La landing no lee el formulario de HubSpot: arma los campos en el código (`regi
 
 - La página carga el Tag Manager de gurú (`GTM-KHV2Q6WD`) y el código de seguimiento de HubSpot (portal 251261).
 - Las UTM del anuncio se guardan 30 días en el navegador (`luna_utm`): si la persona vuelve sin UTM, el registro lleva las guardadas.
-- Solo cuando HubSpot responde 200 (registro guardado) se muestra «¡Gracias! En unos minutos te escribimos por WhatsApp.» y se manda a Tag Manager el evento `lunaos_lead`, con `event_id` y `user_data` (email, phone, first_name, last_name). Lo recogen la etiqueta «LunaOS - GA4 lead» del contenedor web y «LunaOS - Meta CAPI - Lead» del server, que se lo envía a Meta como `Lead`. Si HubSpot no confirma, la persona ve un error y puede reintentar, y no se manda el evento.
+- Solo cuando HubSpot responde 200 (registro guardado), la ventana reemplaza el formulario por la confirmación «¡Listo, {nombre}! En unos minutos te escribimos por WhatsApp desde el +54 9 11 7267-3523…» (se cierra sola a los 8 s y, al reabrirla, el formulario está limpio) y se manda a Tag Manager el evento `lunaos_lead`, con `event_id` y `user_data` (email, phone, first_name, last_name). Lo recogen la etiqueta «LunaOS - GA4 lead» del contenedor web y «LunaOS - Meta CAPI - Lead» del server, que se lo envía a Meta como `Lead`. Si HubSpot no confirma, la persona ve un error y puede reintentar, y no se manda el evento.
