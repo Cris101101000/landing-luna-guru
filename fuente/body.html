@@ -101,6 +101,7 @@
     <div class="campo"><label for="f-wa">WhatsApp</label><div class="wa"><select name="pais" aria-label="Código de país"><option value="+54">+54</option></select><input id="f-wa" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel-national" placeholder="11 2345 6789" required></div></div>
     <div class="campo"><label for="f-mail">Correo</label><input id="f-mail" name="correo" type="email" autocomplete="email" required></div>
     <div class="campo"><label for="f-neg">Nombre del negocio</label><input id="f-neg" name="negocio" autocomplete="organization" required></div>
+    <div class="campo ancho"><label for="f-web">Web o Instagram del negocio (opcional)</label><input id="f-web" name="web" type="text" autocomplete="url" autocapitalize="off" spellcheck="false" placeholder="Ej.: www.tunegocio.com o @tunegocio"></div>
     <div class="campo ancho"><label for="f-rubro">Rubro</label><select id="f-rubro" name="rubro" required><option value="" selected disabled>Elegí tu rubro</option><option value="belleza-estetica">Belleza y estética</option><option value="wellness-gimnasios">Wellness y gimnasios</option><option value="salud-odontologia">Salud y odontología</option><option value="construccion">Construcción</option><option value="otro">Otro</option></select></div>
     <label class="check ancho"><input type="checkbox" name="consentimiento_whatsapp" required><span>Acepto que gurú me escriba por WhatsApp sobre mi registro.</span></label>
     <button class="btn ancho" type="submit">Registrate</button>
@@ -282,6 +283,8 @@
       phone: telefono(form.pais.value, form.whatsapp.value),
       email: form.correo.value.trim(),
       pl_nombre_negocio: form.negocio.value.trim(),
+      // Opcional y texto libre (web, @usuario o enlace de Instagram). Vacío no se manda: el filtro de abajo descarta los campos vacíos.
+      pl_web_o_instagram: form.web.value.trim(),
       pl_rubro: RUBRO[form.rubro.value] || 'otro',
       pl_consentimiento_whatsapp: 'true',
       utm_source: UTM.utm_source || '',
